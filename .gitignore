@@ -40,8 +40,8 @@ venv/
 ENV/
 
 # PLY cache and debugging files
-parser*.out
-parsetab*.py
+_debug_*.out
+_table_*.py
 
 # Compiled resource data
 *.rsrc

@@ -1,6 +1,7 @@
 import ply.yacc
 
-import rezparser
+from . import lexer
+from . import parser
 
 
 # noinspection PyMethodMayBeStatic, PyPep8Naming
@@ -9,12 +10,12 @@ class RezParserRetro68(object):
 	https://github.com/autc04/Retro68/blob/master/Rez/RezParser.yy
 	"""
 	
-	tokens = rezparser.RezLexer.tokens
+	tokens = lexer.RezLexer.tokens
 	
 	start = "rez"
 	
 	def p_error(self, p):
-		raise rezparser.ParseError(p)
+		raise parser.ParseError(p)
 	
 	def p_empty(self, p):
 		"""empty : """
@@ -456,8 +457,8 @@ class RezParserRetro68(object):
 	def __init__(self, lexer=None, **kwargs):
 		super().__init__()
 		
-		self.lexer = rezparser.RezLexer().lexer if lexer is None else lexer
-		self.parser = ply.yacc.yacc(module=self, **kwargs)
+		self.lexer = lexer.RezLexer().lexer if lexer is None else lexer
+		self.parser = ply.yacc.yacc(module=self, tabmodule="_table_parser_retro68", debugfile="_debug_parser_retro68.out", **kwargs)
 	
 	def parse(self, inp, **kwargs):
 		return self.parser.parse(inp, self.lexer, **kwargs)

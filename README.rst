@@ -3,6 +3,8 @@
 
 A pure Python library for parsing Macintosh Rez source files, which are used by the legacy ``Rez`` and ``DeRez`` tools to compile, modify and decompile Macintosh resource fork data.
 
+**Note: This project is in very early development. Anything can (and probably will) change at any time.** If you encounter any bugs, please make an issue on the GitHub repo.
+
 Requirements
 ------------
 
