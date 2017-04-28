@@ -123,21 +123,21 @@ class RezParser(object):
 	def p_int_function_call(self, p):
 		"""int_function_call : FUN_ARRAYINDEX LPAREN IDENTIFIER comma_opt RPAREN
 		| FUN_ATTRIBUTES
-		| FUN_BITFIELD LPAREN expression COMMA expression COMMA expression comma_opt RPAREN
-		| FUN_BYTE LPAREN expression comma_opt RPAREN
+		| FUN_BITFIELD LPAREN int_expression COMMA int_expression COMMA int_expression comma_opt RPAREN
+		| FUN_BYTE LPAREN int_expression comma_opt RPAREN
 		| FUN_COUNTOF LPAREN IDENTIFIER comma_opt RPAREN
 		| FUN_DAY
 		| FUN_HOUR
 		| FUN_ID
-		| FUN_LONG LPAREN expression comma_opt RPAREN
+		| FUN_LONG LPAREN int_expression comma_opt RPAREN
 		| FUN_MINUTE
 		| FUN_MONTH
-		| FUN_PACKEDSIZE LPAREN expression COMMA expression COMMA expression comma_opt RPAREN
+		| FUN_PACKEDSIZE LPAREN int_expression COMMA int_expression COMMA int_expression comma_opt RPAREN
 		| FUN_RESOURCESIZE
 		| FUN_SECOND
 		| FUN_TYPE
 		| FUN_WEEKDAY
-		| FUN_WORD LPAREN expression comma_opt RPAREN
+		| FUN_WORD LPAREN int_expression comma_opt RPAREN
 		| FUN_YEAR
 		"""
 		
@@ -145,125 +145,133 @@ class RezParser(object):
 		return p
 	
 	def p_label_subscript_indices(self, p):
-		"""label_subscript_indices : expression
-		| label_subscript_indices COMMA expression
+		"""label_subscript_indices : int_expression
+		| label_subscript_indices COMMA int_expression
 		"""
 		
 		p[0] = [p[1]] if len(p) == 2 else p[1] + p[3:]
 		return p
 	
-	def p_expression_simple(self, p):
-		"""expression_simple : intlit
+	def p_int_expression_simple(self, p):
+		"""int_expression_simple : intlit
 		| resource_attribute
 		| int_function_call
 		| IDENTIFIER
 		| IDENTIFIER LBRACKET label_subscript_indices RBRACKET
-		| LPAREN expression RPAREN
+		| LPAREN int_expression RPAREN
 		"""
 		
 		p[0] = p[2] if len(p) > 2 else p[1]
 		return p
 	
-	def p_expression_unaryop(self, p):
-		"""expression_unaryop : expression_simple
-		| MINUS expression_unaryop
-		| BOOLNOT expression_unaryop
-		| BITNOT expression_unaryop
+	def p_int_expression_unaryop(self, p):
+		"""int_expression_unaryop : int_expression_simple
+		| MINUS int_expression_unaryop
+		| BOOLNOT int_expression_unaryop
+		| BITNOT int_expression_unaryop
 		"""
 		
 		p[0] = p[1:] if len(p) > 2 else p[1]
 		return p
 	
-	def p_expression_muldiv(self, p):
-		"""expression_muldiv : expression_unaryop
-		| expression_muldiv MULTIPLY expression_unaryop
-		| expression_muldiv DIVIDE expression_unaryop
-		| expression_muldiv MODULO expression_unaryop
+	def p_int_expression_muldiv(self, p):
+		"""int_expression_muldiv : int_expression_unaryop
+		| int_expression_muldiv MULTIPLY int_expression_unaryop
+		| int_expression_muldiv DIVIDE int_expression_unaryop
+		| int_expression_muldiv MODULO int_expression_unaryop
 		"""
 		
 		p[0] = p[1:] if len(p) > 2 else p[1]
 		return p
 	
-	def p_expression_plusminus(self, p):
-		"""expression_plusminus : expression_muldiv
-		| expression_plusminus PLUS expression_muldiv
-		| expression_plusminus MINUS expression_muldiv
+	def p_int_expression_plusminus(self, p):
+		"""int_expression_plusminus : int_expression_muldiv
+		| int_expression_plusminus PLUS int_expression_muldiv
+		| int_expression_plusminus MINUS int_expression_muldiv
 		"""
 		
 		p[0] = p[1:] if len(p) > 2 else p[1]
 		return p
 	
-	def p_expression_bitshift(self, p):
-		"""expression_bitshift : expression_plusminus
-		| expression_bitshift SHIFTLEFT expression_plusminus
-		| expression_bitshift SHIFTRIGHT expression_plusminus
+	def p_int_expression_bitshift(self, p):
+		"""int_expression_bitshift : int_expression_plusminus
+		| int_expression_bitshift SHIFTLEFT int_expression_plusminus
+		| int_expression_bitshift SHIFTRIGHT int_expression_plusminus
 		"""
 		
 		p[0] = p[1:] if len(p) > 2 else p[1]
 		return p
 	
-	def p_expression_relational(self, p):
-		"""expression_relational : expression_bitshift
-		| expression_relational LESS expression_bitshift
-		| expression_relational GREATER expression_bitshift
-		| expression_relational LESSEQUAL expression_bitshift
-		| expression_relational GREATEREQUAL expression_bitshift
+	def p_int_expression_relational(self, p):
+		"""int_expression_relational : int_expression_bitshift
+		| int_expression_relational LESS int_expression_bitshift
+		| int_expression_relational GREATER int_expression_bitshift
+		| int_expression_relational LESSEQUAL int_expression_bitshift
+		| int_expression_relational GREATEREQUAL int_expression_bitshift
 		"""
 		
 		p[0] = p[1:] if len(p) > 2 else p[1]
 		return p
 	
-	def p_expression_equal(self, p):
-		"""expression_equal : expression_relational
-		| expression_equal EQUAL expression_relational
-		| expression_equal NOTEQUAL expression_relational
+	def p_int_expression_equal(self, p):
+		"""int_expression_equal : int_expression_relational
+		| int_expression_equal EQUAL int_expression_relational
+		| int_expression_equal NOTEQUAL int_expression_relational
 		"""
 		
 		p[0] = p[1:] if len(p) > 2 else p[1]
 		return p
 	
-	def p_expression_bitand(self, p):
-		"""expression_bitand : expression_equal
-		| expression_bitand BITAND expression_equal
+	def p_int_expression_bitand(self, p):
+		"""int_expression_bitand : int_expression_equal
+		| int_expression_bitand BITAND int_expression_equal
 		"""
 		
 		p[0] = p[1:] if len(p) > 2 else p[1]
 		return p
 	
-	def p_expression_bitxor(self, p):
-		"""expression_bitxor : expression_bitand
-		| expression_bitxor BITXOR expression_bitand
+	def p_int_expression_bitxor(self, p):
+		"""int_expression_bitxor : int_expression_bitand
+		| int_expression_bitxor BITXOR int_expression_bitand
 		"""
 		
 		p[0] = p[1:] if len(p) > 2 else p[1]
 		return p
 	
-	def p_expression_bitor(self, p):
-		"""expression_bitor : expression_bitxor
-		| expression_bitor BITOR expression_bitxor
+	def p_int_expression_bitor(self, p):
+		"""int_expression_bitor : int_expression_bitxor
+		| int_expression_bitor BITOR int_expression_bitxor
 		"""
 		
 		p[0] = p[1:] if len(p) > 2 else p[1]
 		return p
 	
-	def p_expression_booland(self, p):
-		"""expression_booland : expression_bitor
-		| expression_booland BOOLAND expression_bitor
+	def p_int_expression_booland(self, p):
+		"""int_expression_booland : int_expression_bitor
+		| int_expression_booland BOOLAND int_expression_bitor
 		"""
 		
 		p[0] = p[1:] if len(p) > 2 else p[1]
 		return p
 	
-	def p_expression_boolor(self, p):
-		"""expression_boolor : expression_booland
-		| expression_boolor BOOLOR expression_booland
+	def p_int_expression_boolor(self, p):
+		"""int_expression_boolor : int_expression_booland
+		| int_expression_boolor BOOLOR int_expression_booland
 		"""
 		
 		p[0] = p[1:] if len(p) > 2 else p[1]
+		return p
+	
+	def p_int_expression(self, p):
+		"""int_expression : int_expression_boolor"""
+		
+		p[0] = p[1]
 		return p
 	
 	def p_expression(self, p):
-		"""expression : expression_boolor"""
+		"""expression : int_expression
+		| string_expression
+		"""
 		
 		p[0] = p[1]
 		return p
@@ -271,7 +279,6 @@ class RezParser(object):
 	def p_varargs_part(self, p):
 		"""varargs_part : empty
 		| varargs_part COMMA expression
-		| varargs_part COMMA string_expression
 		"""
 		
 		p[0] = p[1] + p[2:]
@@ -288,7 +295,7 @@ class RezParser(object):
 		| FUN_FORMAT LPAREN string_expression varargs_opt RPAREN
 		| FUN_NAME
 		| FUN_READ LPAREN string_expression comma_opt RPAREN
-		| FUN_RESOURCE LPAREN string_expression COMMA expression COMMA expression COMMA string_expression comma_opt RPAREN
+		| FUN_RESOURCE LPAREN string_expression COMMA int_expression COMMA int_expression COMMA string_expression comma_opt RPAREN
 		| FUN_SHELL LPAREN string_expression comma_opt RPAREN
 		| FUN_TIME
 		| FUN_VERSION
@@ -340,7 +347,7 @@ class RezParser(object):
 	
 	def p_resource_attributes(self, p):
 		"""resource_attributes : resource_attributes_named
-		| expression
+		| int_expression
 		"""
 		
 		p[0] = p[1]
@@ -355,25 +362,25 @@ class RezParser(object):
 		return p
 	
 	def p_resource_spec_typedef(self, p):
-		"""resource_spec_typedef : expression
-		| expression LPAREN expression RPAREN
-		| expression LPAREN expression COLON expression RPAREN
+		"""resource_spec_typedef : int_expression
+		| int_expression LPAREN int_expression RPAREN
+		| int_expression LPAREN int_expression COLON int_expression RPAREN
 		"""
 		
 		p[0] = p[1:]
 		return p
 	
 	def p_resource_spec_def(self, p):
-		"""resource_spec_def : expression LPAREN expression resource_name_opt resource_attributes_opt RPAREN"""
+		"""resource_spec_def : int_expression LPAREN int_expression resource_name_opt resource_attributes_opt RPAREN"""
 		
 		p[0] = p[1:]
 		return p
 	
 	def p_resource_spec_use(self, p):
-		"""resource_spec_use : expression
-		| expression LPAREN expression RPAREN
-		| expression LPAREN expression COLON expression RPAREN
-		| expression LPAREN string_expression RPAREN
+		"""resource_spec_use : int_expression
+		| int_expression LPAREN int_expression RPAREN
+		| int_expression LPAREN int_expression COLON int_expression RPAREN
+		| int_expression LPAREN string_expression RPAREN
 		"""
 		
 		p[0] = p[1:]
@@ -399,7 +406,7 @@ class RezParser(object):
 	
 	def p_enum_constant(self, p):
 		"""enum_constant : IDENTIFIER
-		| IDENTIFIER ASSIGN expression
+		| IDENTIFIER ASSIGN int_expression
 		"""
 		
 		p[0] = p[1:]
@@ -432,8 +439,8 @@ class RezParser(object):
 	def p_include_statement(self, p):
 		"""include_statement : INCLUDE string_expression SEMICOLON
 		| INCLUDE string_expression resource_spec_use SEMICOLON
-		| INCLUDE string_expression NOT expression SEMICOLON
-		| INCLUDE string_expression expression AS expression SEMICOLON
+		| INCLUDE string_expression NOT int_expression SEMICOLON
+		| INCLUDE string_expression int_expression AS int_expression SEMICOLON
 		| INCLUDE string_expression resource_spec_use AS resource_spec_def SEMICOLON
 		"""
 		
@@ -449,7 +456,6 @@ class RezParser(object):
 	def p_resource_value(self, p):
 		"""resource_value : IDENTIFIER
 		| expression
-		| string_expression
 		| LBRACE array_values RBRACE
 		| IDENTIFIER LBRACE resource_values semicolon_opt RBRACE
 		"""
@@ -517,7 +523,7 @@ class RezParser(object):
 		return p
 	
 	def p_numeric_type(self, p):
-		"""numeric_type : BITSTRING LBRACKET expression RBRACKET
+		"""numeric_type : BITSTRING LBRACKET int_expression RBRACKET
 		| BYTE
 		| INTEGER
 		| LONGINT
@@ -538,7 +544,7 @@ class RezParser(object):
 	
 	def p_string_type(self, p):
 		"""string_type : string_type_name
-		| string_type_name LBRACKET expression RBRACKET
+		| string_type_name LBRACKET int_expression RBRACKET
 		"""
 		
 		p[0] = p[1:]
@@ -600,7 +606,7 @@ class RezParser(object):
 	
 	def p_fill_field(self, p):
 		"""fill_field : FILL fill_field_size SEMICOLON
-		| FILL fill_field_size LBRACKET expression RBRACKET SEMICOLON
+		| FILL fill_field_size LBRACKET int_expression RBRACKET SEMICOLON
 		"""
 		
 		p[0] = p[1:]
@@ -686,8 +692,8 @@ class RezParser(object):
 	
 	def p_type_statement(self, p):
 		"""type_statement : TYPE resource_spec_typedef LBRACE fields RBRACE SEMICOLON
-		| TYPE resource_spec_typedef AS expression SEMICOLON
-		| TYPE resource_spec_typedef AS expression LPAREN expression RPAREN SEMICOLON
+		| TYPE resource_spec_typedef AS int_expression SEMICOLON
+		| TYPE resource_spec_typedef AS int_expression LPAREN int_expression RPAREN SEMICOLON
 		"""
 		
 		p[0] = p[1:]
