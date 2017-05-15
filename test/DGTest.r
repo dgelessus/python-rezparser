@@ -71,6 +71,8 @@ type '_FOO' {
 		unsigned integer = stuff_thing[$$ArrayIndex(stuff)];
 	};
 	text: cstring;
+	bitcount: byte;
+	bits: bitstring[$$Byte(bitcount)];
 	hext: hex string dead = $"dead", beef = $"beef",;
 	end:
 };
@@ -83,6 +85,20 @@ type 'swit' {
 		case bar:
 			key byte = 1;
 	};
+};
+
+type 'what' (2) {
+	integer;
+};
+
+type 'what' (3) {
+	string;
+};
+
+type 'ever' as 'what';
+
+resource 'ever' (2) {
+	42;
 };
 
 resource 'swit' (0) {
@@ -105,6 +121,8 @@ resource '_FOO' (0, "", SysHeap, nonpreload) {
 		stuff,
 	},
 	$$read("hello.txt") $$read("hello.txt"),
+	8,
+	123,
 	$"deadbeef"
 };
 
@@ -117,12 +135,14 @@ resource '_FOO' (1, "name") {
 	#else
 		"id is not 0",
 	#endif
+	16,
+	12345,
 	$"DeAd",
 	;
 };
 
 resource 'blub' (0) {
-	"abcdef";
+	"abcdef\t\b\r\n\f\v\?\\\'\"\0B00101010\052\0D042\0X2a\$2a\499";
 };
 
 resource 'blub' (1) {
@@ -141,5 +161,7 @@ data 'data' (0) {
 data 'data' (1) {
 	$"ABCDEF"
 };
+
+data 'wot\?' (0) {};
 
 ;
