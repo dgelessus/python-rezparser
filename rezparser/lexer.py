@@ -7,24 +7,6 @@ __all__ = [
 	"RezLexer",
 ]
 
-# NOTE: The meanings of the control characters "\r" and "\n" are reversed in Rez. For example, in $$read input and #printf output, all "\r" are replaced with "\n" and vice versa. This is because the line ending on classic Mac OS was "\r", and on Unix (including OS X) is "\n".
-
-# NOTE: Rez files can also include "preprocessor" directives. The basic behavior is equivalent to standard cpp, but there are more advanced cases where the two are very different. The Rez "preprocessor directives" are actually closely integrated with the language, and can't easily be processed without understanding the language semantics. This requires some unusual parsing techniques below, and some very odd corner cases might not be handled correctly.
-# #define macros can only be constants. Macro functions do not exist. Enum constants are implemented as macros (but unlike macros, their values are evaluated when they are defined, not when they are used). Preprocessor directives may be constructed from macros. The identifier directly after the hash symbol is *not* macro-expanded, but may come from a macro expansion that already includes the hash symbol. (Constructing preprocessor directives from macros is not supported by this parser.)
-# #undef exists and does what you expect. It is not an error to re-#define an existing macro without an intermediate #undef, or to #undef nonexistant macros.
-# Recursive macro expansions are not treated specially (unlike in C, where a macro is not expanded when it appears inside its own expansion, even indirectly). Nesting macros more than 100 levels deep is an error, which makes recursive macros completely useless.
-# There are four predefined macros: true (1), false (0), rez (1 in Rez, 0 in DeRez), and derez (1 in DeRez, 0 in Rez). These are not keywords (unlike the resource attribute constants). They are normal macros that can be redefined or undefined (although the documentation recommends agianst doing so).
-# Macro names are case-insensitive.
-# There are #if, #ifdef, #ifndef, #elif, #else, #endif. The defined expression (with or without parens) is supported to check whether a macro is defined. Rez "functions" can be used in expressions. An empty expression evaluates to true, but also generates an error, so this is not useful in practice.
-# #include and #import exist. Filenames may be angle-bracketed or quoted. Quoted filenames have some special features, see below. The path separator is "/" and not ":". In some examples, the filename is completely bare, but current Rez doesn't accept that.
-# There is a #printf(format, ...) directive that is mostly equivalent to fprintf(stderr, format, ...) in C. At most 20 arguments can be used. Contrary to what the docs say, a terminating semicolon is allowed in practice.
-# Most preprocessor directives are very lenient about text after their intended input.
-# #if, #elif, #printf input can be terminated by a semicolon, anything after it is treated like normal source code. (In the case of #if and #elif, the code afterwards is only executed if the condition is true.)
-# #else, #endif ignore any arguments.
-# #include/#import (with angle brackets), #undef, #ifdef, #ifndef ignore anything after their intended argument (the following text doesn't need to be syntactically valid).
-# The non-angle-bracket form of #include/#import accepts a sequence of string literals and string-producing Rez functions (like $$shell or $$format), which are concatenated to produce the final path. Macros are not expanded, any use of an identifier (even as an argument to a Rez function) is an error. A semicolon can be used to terminate this sequence, and anything after it is ignored (the text doesn't need to be syntactically valid). When terminating the sequence with some other symbol (doesn't need to be syntactically valid either), there is no error, but the include silently does nothing (which usually leads to an error later on in the file because of missing definitions).
-
-
 class LexError(common.RezParserError):
 	__slots__ = ()
 
@@ -198,6 +180,8 @@ class RezLexer(object):
 	
 	t_ignore_COMMENT_SINGLE = r"//[^\n]*"
 	t_ignore_COMMENT_MULTI = r"(?s:/\*.*?\*/)"
+	
+	# NOTE: Some of the patterns for preprocessor directives are a bit unusual, because of certain quirks in the Rez "preprocessor" language. See the comments in preprocessor.py for details.
 	
 	@ply.lex.TOKEN(_pp+r"(?:include|import)[ \t]*"+_filename+r";?.*")
 	def t_PP_INCLUDE(self, t):
