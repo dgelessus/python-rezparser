@@ -1204,27 +1204,18 @@ class RezParser(object):
 		p[0] = p[1]
 		return p
 	
-	def __init__(self, lexer=None, preprocess=True, **kwargs):
+	def __init__(self, **kwargs):
 		super().__init__()
 		
-		if lexer is None:
-			lexer = lexer.RezLexer()
-		
-		lexer = self.manual_lexer = NoOpLexer(lexer)
-		
-		if preprocess:
-			lexer = preprocessor.RezPreprocessor(lexer, parser=self)
-		
-		self.lexer = lexer
 		self.parser_file = ply.yacc.yacc(module=self, start="start_file", tabmodule="_table_parser_file", debugfile="_debug_parser_file.out", **kwargs)
 		self.parser_expr = ply.yacc.yacc(module=self, start="start_expr", tabmodule="_table_parser_expr", debugfile="_debug_parser_expr.out", **kwargs)
-		self.parser_file.parse("", self.lexer)
-		self.parser_expr.parse("0", self.lexer)
+		self.parser_file.parse("", lexer.RezLexer())
+		self.parser_expr.parse("0", lexer.RezLexer())
 	
-	def parse_file(self, inp, **kwargs):
+	def parse_file(self, inp, lexer, **kwargs):
 		self.parser_file.restart()
-		return self.parser_file.parse(inp, self.lexer, **kwargs)
+		return self.parser_file.parse(inp, lexer, **kwargs)
 	
-	def parse_expr(self, inp, **kwargs):
+	def parse_expr(self, inp, lexer, **kwargs):
 		self.parser_expr.restart()
-		return self.parser_expr.parse(inp, self.lexer, **kwargs)
+		return self.parser_expr.parse(inp, lexer, **kwargs)
