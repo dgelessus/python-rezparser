@@ -114,7 +114,8 @@ class RezPreprocessor(object):
 		self.lexer.input(*args, **kwargs)
 	
 	def _eval_expression(self, tokens):
-		print(tokens)
+		expr = self.parser.parse_expr(tokens, lexer.NoOpLexer())
+		print(expr)
 		while True:
 			try:
 				return int(input("Please evaluate the above expression: "), base=0)
