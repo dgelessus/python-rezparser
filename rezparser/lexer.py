@@ -15,19 +15,31 @@ class LexError(common.RezParserError):
 class NoOpLexer(object):
 	@property
 	def lineno(self):
-		return self.lexer.lineno
+		if self.lexer is None:
+			return self._lineno
+		else:
+			return self.lexer.lineno
 	
 	@lineno.setter
 	def lineno(self, lineno):
-		self.lexer.lineno = lineno
+		if self.lexer is None:
+			self._lineno = lineno
+		else:
+			self.lexer.lineno = lineno
 	
 	@property
 	def lexpos(self):
-		return self.lexer.lexpos
+		if self.lexer is None:
+			return self._lexpos
+		else:
+			return self.lexer.lexpos
 	
 	@lexpos.setter
 	def lexpos(self, lexpos):
-		self.lexer.lexpos = lexpos
+		if self.lexer is None:
+			self._lexpos = lexpos
+		else:
+			self.lexer.lexpos = lexpos
 	
 	def __init__(self, lexer=None):
 		super().__init__()
@@ -48,7 +60,10 @@ class NoOpLexer(object):
 		try:
 			return self.tokens.pop(0)
 		except IndexError:
-			return self.lexer.token()
+			if self.lexer is None:
+				return None
+			else:
+				return self.lexer.token()
 
 
 # noinspection PyMethodMayBeStatic, PyPep8Naming
