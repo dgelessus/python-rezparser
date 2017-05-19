@@ -2,12 +2,10 @@ import ply.yacc
 
 from . import common
 from . import lexer
-from . import preprocessor
 from . import ast
 
 __all__ = [
 	"ParseError",
-	"NoOpLexer",
 	"RezParser",
 ]
 
@@ -88,45 +86,6 @@ def _unescape_string(s):
 	
 	ret.extend(s[lastpos:].encode(STRING_ENCODING))
 	return bytes(ret)
-
-
-class NoOpLexer(object):
-	@property
-	def lineno(self):
-		return self.lexer.lineno
-	
-	@lineno.setter
-	def lineno(self, lineno):
-		self.lexer.lineno = lineno
-	
-	@property
-	def lexpos(self):
-		return self.lexer.lexpos
-	
-	@lexpos.setter
-	def lexpos(self, lexpos):
-		self.lexer.lexpos = lexpos
-	
-	def __init__(self, lexer=None):
-		super().__init__()
-		
-		self.lexer = lexer
-		self.tokens = []
-	
-	def __iter__(self):
-		return iter(self.token, None)
-	
-	def input(self, inp):
-		if isinstance(inp, str):
-			self.lexer.input(inp)
-		else:
-			self.tokens = list(inp)
-	
-	def token(self):
-		try:
-			return self.tokens.pop(0)
-		except IndexError:
-			return self.lexer.token()
 
 
 # noinspection PyMethodMayBeStatic, PyPep8Naming
