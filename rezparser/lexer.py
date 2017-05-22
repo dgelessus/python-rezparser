@@ -362,10 +362,26 @@ class RezLexer(object):
 	
 	t_STRINGLIT_TEXT = r"\"(?:[^\\\"\n]|\\.)*\""
 	t_STRINGLIT_HEX = r"\$\"[ \t]*(?:[0-9A-Fa-f][ \t]*[0-9A-Fa-f][ \t]*)*\""
-	t_INTLIT_DEC = r"0|[1-9][0-9]*"
-	t_INTLIT_HEX = r"\$|0[Xx][0-9A-Fa-f]+"
-	t_INTLIT_OCT = r"0[0-7]+"
-	t_INTLIT_BIN = r"0[Bb][01]+"
+	
+	# These tokens are defined using methods instead of plain strings to enforce precedence.
+	# The decimal int literal MUST come last, to prevent the leading zeros of the other int literals from being considered a separate decimal literal.
+	
+	@ply.lex.TOKEN(r"(?:\$|0[Xx])[0-9A-Fa-f]+")
+	def t_INTLIT_HEX(self, t):
+		return t
+	
+	@ply.lex.TOKEN(r"0[Bb][01]+")
+	def t_INTLIT_BIN(self, t):
+		return t
+	
+	@ply.lex.TOKEN(r"0[0-7]+")
+	def t_INTLIT_OCT(self, t):
+		return t
+	
+	@ply.lex.TOKEN(r"0|[1-9][0-9]*")
+	def t_INTLIT_DEC(self, t):
+		return t
+	
 	t_INTLIT_CHAR = r"\'(?:[^\\\'\n]|\\.)*\'"
 	
 	t_SHIFTLEFT = r"<<"
