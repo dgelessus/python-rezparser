@@ -90,8 +90,8 @@ def _unescape_string(s):
 
 # noinspection PyMethodMayBeStatic, PyPep8Naming
 class RezParser(object):
-	"""Rez preprocessor and parser, based on the description and syntax given in Appendix C, "The Rez Language", in "Building and Managing Programs in MPW, 2nd Edition".
-	This file can for example be found on Max1zzz's server "www.max1zzz.co.uk", at location "/%2BMac OS Classic/Programming/Macintosh Programmers Workshop/MPW (2001)/Documentation/MPW_Reference/Building_Progs_in_MPW.sit".
+	"""Rez preprocessor and parser, based on the description and syntax given in Appendix C, "The Rez Language", in "Building and Managing Programs in MPW, 2nd Edition". A copy of this file can be found in the "docs" folder in this repo.
+	This file can also be found on Max1zzz's server "www.max1zzz.co.uk", at location "/%2BMac OS Classic/Programming/Macintosh Programmers Workshop/MPW (2001)/Documentation/MPW_Reference/Building_Progs_in_MPW.sit".
 	The server can be accessed via a web interface ("http://www.max1zzz.co.uk:8000", username "mg", password "mg"), or via FTP ("ftp://www.max1zzz.co.uk:21", username "mg", password "mg"), or via one of the other methods listed at "http://max1zzz.co.uk/servers.html".
 	"""
 	
