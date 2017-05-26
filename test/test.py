@@ -2,6 +2,7 @@ import sys
 
 import rezparser.lexer
 import rezparser.parser
+import rezparser.eval
 import rezparser.preprocessor
 
 def main():
@@ -10,7 +11,8 @@ def main():
 	
 	lexer = rezparser.lexer.RezLexer(debug=True)
 	parser = rezparser.parser.RezParser(debug=True)
-	preprocessor = rezparser.preprocessor.RezPreprocessor(lexer=lexer, parser=parser)
+	evaluator = rezparser.eval.Evaluator()
+	preprocessor = rezparser.preprocessor.RezPreprocessor(lexer=lexer, parser=parser, evaluator=evaluator)
 	
 	print(parser.parse_file(text, preprocessor, debug=True, tracking=True))
 

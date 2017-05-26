@@ -45,11 +45,12 @@ class RezPreprocessor(object):
 	def lexpos(self, lexpos):
 		self.lexer.lexpos = lexpos
 	
-	def __init__(self, lexer, *, parser=None, macros=None, derez=False, include_path=None):
+	def __init__(self, lexer, *, parser=None, evaluator=None, macros=None, derez=False, include_path=None):
 		super().__init__()
 		
 		self.lexer = lexer
 		self.parser = parser
+		self.evaluator = evaluator
 		
 		# Mapping of macro names (case-insensitive, all names must be passed through str.casefold) to lists of expansion tokens.
 		self.macros = {
@@ -114,13 +115,7 @@ class RezPreprocessor(object):
 		self.lexer.input(*args, **kwargs)
 	
 	def _eval_expression(self, tokens):
-		expr = self.parser.parse_expr(tokens, lexer.NoOpLexer())
-		print(expr)
-		while True:
-			try:
-				return int(input("Please evaluate the above expression: "), base=0)
-			except ValueError as err:
-				print(err)
+		return self.evaluator.eval(self.parser.parse_expr(tokens, lexer.NoOpLexer()))
 	
 	def _token_internal(self, *, expand=True):
 		while True:

@@ -58,6 +58,12 @@ enum {
 
 #printf("expr: %d\r", expr / 2)
 
+#printf("3 / 2 = %d, -3 / 2 = %d, 3 / -2 = %d, -3 / -2 = %d\r", 3 / 2, -3 / 2, 3 / -2, -3 / -2);
+#printf("7 %% 5 = %d, -7 %% 5 = %d, 7 %% -5 = %d, -7 %% -5 = %d\r", 7 % 5, -7 % 5, 7 % -5, -7 % -5)
+#printf("8 << 2 = %d, 8 << -2 = %d\r", 8 << 2, 8 << -2)
+#printf("8 >> 2 = %d, 8 >> -2 = %d\r", 8 >> 2, 8 >> -2)
+#printf("Date: %s; Time: %s; Version: %s\r", $$Date, $$Time, $$Version)
+
 type '_FOO' {
 	start: integer = start;
 	integer = end;
@@ -95,7 +101,7 @@ type 'what' (3) {
 	string;
 };
 
-type 'ever' as 'what';
+type 'ever' as 'what' (2);
 
 resource 'ever' (2) {
 	42;
@@ -139,6 +145,32 @@ resource '_FOO' (1, "name") {
 	12345,
 	$"DeAd",
 	;
+};
+
+resource '_FOO' (2) {
+	#include "TypeID.r"
+	{
+		0b10001000,
+		$$bitfield(stuff_thing[1] + 0, 0, 1),
+		$$bitfield(stuff_thing[1] + 1, 0, 1),
+		$$bitfield(stuff_thing[1] + 2, 0, 1),
+		$$bitfield(stuff_thing[1] + 3, 0, 1),
+		$$bitfield(stuff_thing[1] + 4, 0, 1),
+		$$bitfield(stuff_thing[1] + 5, 0, 1),
+		$$bitfield(stuff_thing[1] + 6, 0, 1),
+		$$bitfield(stuff_thing[1] + 7, 0, 1),
+		$$bitfield(stuff_thing[1] + 0, 0, 2),
+		$$bitfield(stuff_thing[1] + 2, 0, 2),
+		$$bitfield(stuff_thing[1] + 4, 0, 2),
+		$$bitfield(stuff_thing[1] + 6, 0, 2),
+		$$bitfield(stuff_thing[1] + 0, 0, 4),
+		$$bitfield(stuff_thing[1] + 4, 0, 4),
+		$$bitfield(stuff_thing[1] + 0, 0, 8),
+	},
+	"",
+	8,
+	0,
+	$""
 };
 
 resource 'blub' (0) {
