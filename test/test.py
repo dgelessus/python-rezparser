@@ -12,7 +12,7 @@ def main():
 	lexer = rezparser.lexer.RezLexer(debug=True)
 	parser = rezparser.parser.RezParser(debug=True)
 	evaluator = rezparser.eval.Evaluator()
-	preprocessor = rezparser.preprocessor.RezPreprocessor(lexer=lexer, parser=parser, evaluator=evaluator)
+	preprocessor = rezparser.preprocessor.RezPreprocessor(lexer=lexer, parser=parser, evaluator=evaluator, print_func=print)
 	
 	print(parser.parse_file(text, preprocessor, debug=True, tracking=True))
 

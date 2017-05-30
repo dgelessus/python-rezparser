@@ -9,7 +9,6 @@ __all__ = [
 	"RezParser",
 ]
 
-STRING_ENCODING = "macroman"
 
 class ParseError(common.RezParserError):
 	__slots__ = ()
@@ -20,7 +19,7 @@ def _unescape_string(s):
 	lastpos = 0
 	pos = s.find("\\")
 	while pos != -1:
-		ret.extend(s[lastpos:pos].encode(STRING_ENCODING))
+		ret.extend(s[lastpos:pos].encode(common.STRING_ENCODING))
 		
 		if pos+1 >= len(s):
 			raise ValueError("Backslash at end of string")
@@ -84,7 +83,7 @@ def _unescape_string(s):
 		
 		pos = s.find("\\", lastpos)
 	
-	ret.extend(s[lastpos:].encode(STRING_ENCODING))
+	ret.extend(s[lastpos:].encode(common.STRING_ENCODING))
 	return bytes(ret)
 
 

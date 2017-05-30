@@ -7,6 +7,10 @@ __all__ = [
 	"Token",
 ]
 
+
+STRING_ENCODING = "macroman"
+
+
 class RezParserError(Exception):
 	__slots__ = ()
 

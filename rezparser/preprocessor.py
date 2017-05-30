@@ -45,7 +45,7 @@ class RezPreprocessor(object):
 	def lexpos(self, lexpos):
 		self.lexer.lexpos = lexpos
 	
-	def __init__(self, lexer, *, parser=None, evaluator=None, macros=None, derez=False, include_path=None):
+	def __init__(self, lexer, *, parser=None, evaluator=None, macros=None, derez=False, include_path=None, print_func=None):
 		super().__init__()
 		
 		self.lexer = lexer
@@ -64,6 +64,12 @@ class RezPreprocessor(object):
 		
 		# Sequence of directories to search for include files.
 		self.include_path = include_path
+		
+		# Callable to use for printing (when a #printf is encountered).
+		if print_func is None:
+			def print_func(arg):
+				pass
+		self.print_func = print_func
 		
 		# Sequence of tokens that were produced by a macro expansion and not yet consumed.
 		# Can also contain the string "expansion_end" to mark the end of a macro expansion, these markers are only used internally to track macro expansion depth and are otherwise ignored.
@@ -222,10 +228,52 @@ class RezPreprocessor(object):
 				#TODO
 				print(f"Warning: #include and #import are not yet implemented, ignoring: {tok}")
 			elif tok.type == "PP_PRINTF":
-				#TODO
-				print(f"Warning: #printf is not yet implemented, ignoring: {tok}")
-				while tok.type not in ("NEWLINE", "SEMICOLON"):
-					tok = self._token_internal()
+				printf_tokens = []
+				printf_token = self._token_internal()
+				while printf_token.type not in ("NEWLINE", "SEMICOLON"):
+					printf_tokens.append(printf_token)
+					printf_token = self._token_internal()
+				
+				if not printf_tokens:
+					raise PreprocessError("Missing arguments after #printf")
+				
+				if printf_tokens[0].type != "LPAREN":
+					raise PreprocessError(f"Expected '(' after #printf, not {printf_tokens[0]}")
+				
+				if printf_tokens[-1].type != "RPAREN":
+					raise PreprocessError(f"Expected ')' to terminate #printf argument list, not {printf_tokens[-1]}")
+				
+				printf_args = [[]]
+				printf_paren_level = 0
+				for printf_token in printf_tokens[1:-1]:
+					if printf_token.type == "LPAREN":
+						printf_paren_level += 1
+					elif printf_token.type == "RPAREN":
+						printf_paren_level -= 1
+						if printf_paren_level < 0:
+							raise PreprocessError("Unmatched closing paren in #printf argument list")
+					elif printf_token.type == "COMMA" and printf_paren_level == 0:
+						printf_args.append([])
+					else:
+						printf_args[-1].append(printf_token)
+				
+				if printf_paren_level > 0:
+					raise PreprocessError("Unmatched opening paren in #printf argument list")
+				
+				if not printf_args[-1]:
+					del printf_args[-1]
+				
+				if len(printf_args) == 0:
+					raise PreprocessError("#printf got no arguments, expected at least one")
+				elif len(printf_args) > 20:
+					raise PreprocessError(f"#printf got {len(printf_args)} arguments, expected at most 20")
+				
+				printf_parsed_args = [self.parser.parse_expr(arg, lexer.NoOpLexer()) for arg in printf_args]
+				printf_evaled_args = [self.evaluator.eval(ast) for ast in printf_parsed_args]
+				# TODO Enable when Evaluator.eval_format is implemented
+				##out = self.evaluator.eval_format(*printf_evaled_args).decode(common.STRING_ENCODING)
+				out = repr(printf_evaled_args)
+				self.print_func(out)
 			elif tok.type == "ENUM":
 				if self.enum_state != "inactive":
 					raise PreprocessError(f"Invalid nested enum: {tok}")
