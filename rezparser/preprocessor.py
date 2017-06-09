@@ -1,3 +1,5 @@
+import os
+
 from . import common
 from . import lexer
 
@@ -31,24 +33,24 @@ class PreprocessError(common.RezParserError):
 class RezPreprocessor(object):
 	@property
 	def lineno(self):
-		return self.lexer.lineno
+		return self.lexers[-1].lineno
 	
 	@lineno.setter
 	def lineno(self, lineno):
-		self.lexer.lineno = lineno
+		self.lexers[-1].lineno = lineno
 	
 	@property
 	def lexpos(self):
-		return self.lexer.lexpos
+		return self.lexers[-1].lexpos
 	
 	@lexpos.setter
 	def lexpos(self, lexpos):
-		self.lexer.lexpos = lexpos
+		self.lexers[-1].lexpos = lexpos
 	
-	def __init__(self, lexer, *, parser=None, evaluator=None, macros=None, derez=False, include_path=None, print_func=None):
+	def __init__(self, lexer, *, parser=None, evaluator=None, macros=None, derez=False, include_path=None, sys_include_path=None, print_func=None):
 		super().__init__()
 		
-		self.lexer = lexer
+		self.lexers = [lexer]
 		self.parser = parser
 		self.evaluator = evaluator
 		
@@ -63,7 +65,9 @@ class RezPreprocessor(object):
 			self.macros.update(macros)
 		
 		# Sequence of directories to search for include files.
-		self.include_path = include_path
+		self.include_path = [] if include_path is None else include_path
+		# Sequence of directories to search for system include files.
+		self.sys_include_path = [] if sys_include_path is None else sys_include_path
 		
 		# Callable to use for printing (when a #printf is encountered).
 		if print_func is None:
@@ -88,7 +92,7 @@ class RezPreprocessor(object):
 		# The state of the current conditional block. Values are the same as for if_stack. Top-level code is considered to be in an "active" block.
 		self.if_state = "active"
 		
-		# Set of include file names (unprocessed, including angle brackets or quotes, not full filesystem paths) that were previously used in an #import or #include directive and should not be included again when used as an argument to #import.
+		# Set of tuples (filename, angle) representing files that were previously used in an #import or #include directive and should not be included again when used as an argument to #import.
 		self.included_files = set()
 		
 		# Current state of the enum declaration mini-parser. Valid values are:
@@ -118,7 +122,8 @@ class RezPreprocessor(object):
 		return iter(self.token, None)
 	
 	def input(self, *args, **kwargs):
-		self.lexer.input(*args, **kwargs)
+		self.lexers = [self.lexers[-1].clone()]
+		self.lexers[-1].input(*args, **kwargs)
 	
 	def _eval_expression(self, tokens):
 		return self.evaluator.eval(self.parser.parse_expr(tokens, lexer.NoOpLexer()))
@@ -128,10 +133,13 @@ class RezPreprocessor(object):
 			try:
 				tok = self.expansion_queue.pop(0)
 			except IndexError:
-				tok = self.lexer.token()
+				tok = self.lexers[-1].token()
 			
 			if tok is None:
-				return tok
+				if len(self.lexers) > 1:
+					self.lexers.pop()
+				else:
+					return tok
 			elif tok == "expansion_end":
 				self.expansion_depth -= 1
 				continue
@@ -225,8 +233,19 @@ class RezPreprocessor(object):
 			elif tok.type == "PP_UNDEF":
 				self.macros.pop(tok.pp_undef_name.casefold(), None)
 			elif tok.type == "PP_INCLUDE":
-				#TODO
-				print(f"Warning: #include and #import are not yet implemented, ignoring: {tok}")
+				once = tok.pp_include_type == "import"
+				
+				if isinstance(tok.pp_include_filename, str):
+					angle = True
+					name = tok.pp_include_filename[1:-1]
+				else:
+					angle = False
+					ast = self.parser.parse_expr(tok.pp_include_filename, lexer.NoOpLexer())
+					name = self.evaluator.eval(ast).decode(common.STRING_ENCODING)
+				
+				if not once or (name, angle) not in self.included_files:
+					self.included_files.add((name, angle))
+					self.lexers.append(self.lexer_for_include(name, angle=angle))
 			elif tok.type == "PP_PRINTF":
 				printf_tokens = []
 				printf_token = self._token_internal()
@@ -348,3 +367,33 @@ class RezPreprocessor(object):
 				return tok
 			else:
 				return tok
+	
+	def lexer_for_include(self, name, *, angle):
+		include_path = self.sys_include_path
+		if not angle:
+			include_path = self.include_path + include_path
+		
+		for dir in include_path:
+			try:
+				with open(os.path.join(dir, name), "r", encoding=common.STRING_ENCODING) as f:
+					text = f.read()
+				break
+			except FileNotFoundError:
+				pass
+			
+			# Try a framework-style include, for example <Carbon/Carbon.r> translates to <Carbon.framework/Headers/Carbon.r>.
+			parts = os.path.split(name)
+			if len(parts) > 1:
+				parts = (parts[0] + ".framework", "Headers") + parts[1:]
+				try:
+					with open(os.path.join(dir, *parts), "r", encoding=common.STRING_ENCODING) as f:
+						text = f.read()
+					break
+				except FileNotFoundError:
+					pass
+		else:
+			raise PreprocessError(f"File {name!r} (angle = {angle}) not found on include path")
+		
+		sublexer = self.lexers[-1].clone()
+		sublexer.input(text)
+		return sublexer

@@ -1,6 +1,7 @@
-//# import <Carbon.r> ignore me
+# import <CarbonCore/CarbonCore.r> ignore me
 
-#include$$format("%s/", "RIncludes")"Types" ".r"; ignore me?"
+//#include$$format("%s/", "RIncludes")"Types" ".r"; ignore me?"
+#include "RIncludes/" "Types" ".r"; ignore me?"
 
 #define thing 13
 #ifndef thing ignore me?"
@@ -151,6 +152,8 @@ resource '_FOO' (2) {
 	#include "TypeID.r"
 	{
 		0b10001000,
+		// Commented out to reduce parser output when testing
+		/*
 		$$bitfield(stuff_thing[1] + 0, 0, 1),
 		$$bitfield(stuff_thing[1] + 1, 0, 1),
 		$$bitfield(stuff_thing[1] + 2, 0, 1),
@@ -166,6 +169,7 @@ resource '_FOO' (2) {
 		$$bitfield(stuff_thing[1] + 0, 0, 4),
 		$$bitfield(stuff_thing[1] + 4, 0, 4),
 		$$bitfield(stuff_thing[1] + 0, 0, 8),
+		*/
 	},
 	"",
 	8,

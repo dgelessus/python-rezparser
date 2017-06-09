@@ -64,6 +64,11 @@ class NoOpLexer(object):
 				return None
 			else:
 				return self.lexer.token()
+	
+	def clone(self):
+		cloned = NoOpLexer(self.lexer.clone())
+		cloned.input(self.tokens)
+		return cloned
 
 
 # noinspection PyMethodMayBeStatic, PyPep8Naming
@@ -437,10 +442,13 @@ class RezLexer(object):
 	def lexpos(self, lexpos):
 		self.lexer.lexpos = lexpos
 	
-	def __init__(self, **kwargs):
+	def __init__(self, *, _lexer=None, **kwargs):
 		super().__init__()
 		
-		self.lexer = ply.lex.lex(module=self, lextab="_table_lexer", **kwargs)
+		if _lexer is None:
+			self.lexer = ply.lex.lex(module=self, lextab="_table_lexer", **kwargs)
+		else:
+			self.lexer = _lexer
 	
 	def __iter__(self):
 		return iter(self.token, None)
@@ -451,3 +459,6 @@ class RezLexer(object):
 	
 	def token(self):
 		return self.lexer.token()
+	
+	def clone(self):
+		return RezLexer(_lexer=self.lexer.clone())
