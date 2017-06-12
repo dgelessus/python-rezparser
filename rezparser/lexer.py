@@ -335,8 +335,8 @@ class RezLexer(object):
 		##t.pp_ifdef_tail = text[tok.lexpos:]
 		return t
 	
-	t_PP_ELSE = _pp+r"else[^A-Za-z_]?.*"
-	t_PP_ENDIF = _pp+r"endif[^A-Za-z_]?.*"
+	t_PP_ELSE = _pp+r"else[^A-Za-z_\n]?.*"
+	t_PP_ENDIF = _pp+r"endif[^A-Za-z_\n]?.*"
 	t_PP_PRINTF = _pp+r"printf"
 	t_PP_EMPTY = _pp
 	
