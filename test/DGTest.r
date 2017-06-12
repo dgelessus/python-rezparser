@@ -102,6 +102,10 @@ type 'what' (3) {
 	string;
 };
 
+type 'what' (4) {
+	boolean;
+};
+
 type 'ever' as 'what' (2);
 
 type 'yarr' {

@@ -1058,7 +1058,9 @@ class RezParser(object):
 					else:
 						raise ParseError(f"Invalid modifier: {mod!r}")
 				
-				if typename in ("bitstring", "byte", "integer", "longint"):
+				if typename == "boolean":
+					fieldtype = ast.BooleanFieldType()
+				elif typename in ("bitstring", "byte", "integer", "longint"):
 					fieldtype = ast.NumericFieldType(
 						signed=signed,
 						base=ast.NumericFieldType.Base[base or "decimal"],
