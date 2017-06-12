@@ -166,9 +166,11 @@ class RezPreprocessor(object):
 				if tok.type == "PP_ELIF" and not self.if_stack:
 					raise PreprocessError(f"#elif outside of a conditional block: {tok}")
 				
-				if self.if_state == "outer_inactive":
-					if tok.type == "PP_IF":
-						self.if_stack.append("outer_inactive")
+				if tok.type == "PP_IF" and self.if_state != "active":
+					self.if_stack.append(self.if_state)
+					self.if_state = "outer_inactive"
+					continue
+				elif tok.type == "PP_ELIF" and self.if_state in ("done", "outer_inactive"):
 					continue
 				
 				cond_tokens = []
