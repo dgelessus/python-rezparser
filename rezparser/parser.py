@@ -1007,7 +1007,8 @@ class RezParser(object):
 		return p
 	
 	def p_field(self, p):
-		"""field : IDENTIFIER COLON
+		"""field : SEMICOLON
+		| IDENTIFIER COLON
 		| simple_field_modifiers_opt simple_field
 		| fill_field
 		| align_field
@@ -1099,7 +1100,7 @@ class RezParser(object):
 					is_key=is_key,
 				)
 		else:
-			# Anything else (fill, align, array, switch) can be passed through as-is.
+			# Anything else (semicolon, fill, align, array, switch) can be passed through as-is.
 			p[0] = p[1]
 		
 		return p

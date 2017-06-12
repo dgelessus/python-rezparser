@@ -103,7 +103,7 @@ type 'what' (3) {
 };
 
 type 'what' (4) {
-	boolean;
+	;;boolean;;boolean;;
 };
 
 type 'ever' as 'what' (2);
