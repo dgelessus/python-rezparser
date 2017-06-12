@@ -75,12 +75,12 @@ class RezPreprocessor(object):
 				pass
 		self.print_func = print_func
 		
-		# Sequence of tokens that were produced by a macro expansion and not yet consumed.
+		# Sequence ("reverse stack") of tokens that were produced by a macro expansion and not yet consumed.
 		# Can also contain the string "expansion_end" to mark the end of a macro expansion, these markers are only used internally to track macro expansion depth and are otherwise ignored.
-		self.expansion_queue = []
+		self.expansion_stack = []
 		
-		# Current macro expansion depth. Is increased when a macro is expanded, and decreased when the corresponding "expansion_end" marker is hit. If this number grows too high, the preprocessor errors out.
-		self.expansion_depth = 0
+		# Sequence (stack) of the names of all macros that are currently being expanded. Names are pushed when they are expanded, and popped whenever an "expansion_end" marker is hit. If this stack grows too large, the preprocessor errors out.
+		self.macro_stack = []
 		
 		# Sequence (stack) of strings representing the state of all conditional blocks enclosing the current block. Valid values are:
 		# * "waiting": An inactive block in a chain where no active block has been found yet.
@@ -131,7 +131,7 @@ class RezPreprocessor(object):
 	def _token_internal(self, *, expand=True):
 		while True:
 			try:
-				tok = self.expansion_queue.pop(0)
+				tok = self.expansion_stack.pop(0)
 			except IndexError:
 				tok = self.lexers[-1].token()
 			
@@ -141,16 +141,15 @@ class RezPreprocessor(object):
 				else:
 					return tok
 			elif tok == "expansion_end":
-				self.expansion_depth -= 1
+				self.macro_stack.pop()
 				continue
 			elif tok.type == "IDENTIFIER" and self.if_state == "active" and expand:
 				name = tok.value.casefold()
 				try:
-					self.expansion_depth += 1
-					if self.expansion_depth > 100:
-						raise PreprocessError("Maximum macro expansion depth exceeded (> 100)")
-					self.expansion_queue += self.macros[name]
-					self.expansion_queue.append("expansion_end")
+					if len(self.macro_stack) > 100:
+						raise PreprocessError(f"Maximum macro expansion depth exceeded (> 100), macro stack: {self.macro_stack}")
+					self.expansion_stack[0:0] = self.macros[name] + ["expansion_end"]
+					self.macro_stack.append(name)
 				except KeyError:
 					return tok
 			else:

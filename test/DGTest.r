@@ -65,6 +65,15 @@ enum {
 #printf("8 >> 2 = %d, 8 >> -2 = %d\r", 8 >> 2, 8 >> -2)
 #printf("Date: %s; Time: %s; Version: %s\r", $$Date, $$Time, $$Version)
 
+#define abc "abc"
+#define def "def"
+#define abcdef abc def
+#define ghi "ghi"
+#define abcdefghi abcdef ghi
+#define xyz "xyz"
+#define xyzabcdefghi xyz abcdefghi
+#printf("%s\r", xyzabcdefghi)
+
 type '_FOO' {
 	start: integer = start;
 	integer = end;
