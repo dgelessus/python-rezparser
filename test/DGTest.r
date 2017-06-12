@@ -104,6 +104,12 @@ type 'what' (3) {
 
 type 'ever' as 'what' (2);
 
+type 'yarr' {
+	wide array [4] {
+		byte;
+	};
+};
+
 resource 'ever' (2) {
 	42;
 };
@@ -188,6 +194,10 @@ resource 'blub' (1) {
 		"zero"
 	#endif
 	;
+};
+
+resource 'yarr' (0) {
+	{1, 2, 3, 4};
 };
 
 data 'data' (0) {

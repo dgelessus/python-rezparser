@@ -560,12 +560,14 @@ class AlignField(Field):
 class ArrayField(Field):
 	"""An array field.
 	wide specifies whether this array's contents should be written "wide" (all iterations in one line) rather than "narrow" (one line per iteration).
-	The label is optional. If present, it can be used to refer to this array in an $$ArrayIndex or $$CountOf Rez function call.
+	The label is optional. If present, it can be used to refer to this array in an $$ArrayIndex or $$CountOf Rez function call. Must be omitted if count is given.
+	The count is optional. If present, it specifies the number of elements in the array. Must be omitted if label is given.
 	The fields are required, but may be empty.
 	"""
 	
 	wide: bool
 	label: typing.Optional[str]
+	count: typing.Optional[int]
 	fields: typing.Sequence[Field]
 
 class SwitchCase(Node):

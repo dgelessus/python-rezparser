@@ -961,6 +961,7 @@ class RezParser(object):
 	def p_array_field(self, p):
 		"""array_field : array_modifiers_opt ARRAY LBRACE fields RBRACE SEMICOLON
 		| array_modifiers_opt ARRAY IDENTIFIER LBRACE fields RBRACE SEMICOLON
+		| array_modifiers_opt ARRAY LBRACKET int_expression RBRACKET LBRACE fields RBRACE SEMICOLON
 		"""
 		
 		wide = False
@@ -976,10 +977,12 @@ class RezParser(object):
 			else:
 				raise ParseError(f"Unsupported modifier {mod!r} for type array")
 		
-		if len(p) > 7:
-			p[0] = ast.ArrayField(wide=wide, label=p[3], fields=p[5])
+		if len(p) > 9:
+			p[0] = ast.ArrayField(wide=wide, label=None, count=p[4], fields=p[7])
+		elif len(p) > 7:
+			p[0] = ast.ArrayField(wide=wide, label=p[3], count=None, fields=p[5])
 		else:
-			p[0] = ast.ArrayField(wide=wide, label=None, fields=p[4])
+			p[0] = ast.ArrayField(wide=wide, label=None, count=None, fields=p[4])
 		
 		return p
 	
