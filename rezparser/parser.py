@@ -133,10 +133,12 @@ class RezParser(object):
 		
 		if p[1].startswith("'"):
 			value = int.from_bytes(_unescape_string(p[1][1:-1]), "big")
-		elif p[1].startswith("$") or p[1].startswith("0X") or p[1].startswith("0x"):
-			value = int(p[1].lstrip("$0Xx"), 16)
+		elif p[1].startswith("$"):
+			value = int(p[1][1:], 16)
+		elif p[1].startswith("0X") or p[1].startswith("0x"):
+			value = int(p[1][2:], 16)
 		elif p[1].startswith("0B") or p[1].startswith("0b"):
-			value = int(p[1].lstrip("0Bb"), 2)
+			value = int(p[1][2:], 2)
 		elif p[1].startswith("0"):
 			value = int(p[1], 8)
 		else:
