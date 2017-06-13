@@ -814,6 +814,7 @@ class RezParser(object):
 	def p_numeric_type(self, p):
 		"""numeric_type : BITSTRING LBRACKET int_expression RBRACKET
 		| BYTE
+		| INT
 		| INTEGER
 		| LONGINT
 		"""
@@ -1058,6 +1059,9 @@ class RezParser(object):
 							raise ParseError(f"Duplicate base modifier {mod!r} (base was previously set to {base!r}")
 					else:
 						raise ParseError(f"Invalid modifier: {mod!r}")
+				
+				if typename == "int":
+					typename = "integer"
 				
 				if typename == "boolean":
 					fieldtype = ast.BooleanFieldType()

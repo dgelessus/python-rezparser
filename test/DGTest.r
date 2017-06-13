@@ -123,6 +123,11 @@ type 'yarr' {
 	};
 };
 
+type 'ints' {
+	integer;
+	int;
+};
+
 resource 'ever' (2) {
 	42;
 };
@@ -211,6 +216,11 @@ resource 'blub' (1) {
 
 resource 'yarr' (0) {
 	{1, 2, 3, 4};
+};
+
+resource 'ints' (1234) {
+	1234,
+	1234,
 };
 
 data 'data' (0) {

@@ -151,6 +151,7 @@ class RezLexer(object):
 		"char",
 		"cstring",
 		"nibble",
+		"int",
 		"integer",
 		"long",
 		"longint",
