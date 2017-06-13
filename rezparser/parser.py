@@ -1103,8 +1103,11 @@ class RezParser(object):
 					symbolic_constants=symconsts,
 					is_key=is_key,
 				)
+		elif p[1] == ";":
+			# Remove semicolons
+			p[0] = None
 		else:
-			# Anything else (semicolon, fill, align, array, switch) can be passed through as-is.
+			# Anything else (fill, align, array, switch) can be passed through as-is.
 			p[0] = p[1]
 		
 		return p
@@ -1114,7 +1117,11 @@ class RezParser(object):
 		| fields field
 		"""
 		
-		p[0] = p[1] + p[2:]
+		if len(p) > 2 and p[2]:
+			p[0] = p[1] + [p[2]]
+		else:
+			p[0] = p[1]
+		
 		return p
 	
 	def p_type_statement(self, p):
