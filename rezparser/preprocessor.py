@@ -143,7 +143,7 @@ class RezPreprocessor(object):
 			elif tok == "expansion_end":
 				self.macro_stack.pop()
 				continue
-			elif tok.type == "IDENTIFIER" and self.if_state == "active" and expand:
+			elif tok.type == "IDENTIFIER" and self.if_state in ("active", "waiting") and expand:
 				name = tok.value.casefold()
 				try:
 					if len(self.macro_stack) > 100:
