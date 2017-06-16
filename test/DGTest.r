@@ -1,4 +1,4 @@
-# import <CarbonCore/CarbonCore.r> ignore me
+# import <CoreServices/CoreServices.r> ignore me
 
 //#include$$format("%s/", "RIncludes")"Types" ".r"; ignore me?"
 #include "RIncludes/" "Types" ".r"; ignore me?"

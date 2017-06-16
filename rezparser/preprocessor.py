@@ -1,4 +1,5 @@
 import os
+import typing
 
 from . import common
 from . import lexer
@@ -30,29 +31,43 @@ class PreprocessError(common.RezParserError):
 	__slots__ = ()
 
 
+class IncludeState(object):
+	lexer: typing.Any
+	filename: str
+	framework: typing.Optional[str]
+	
+	def __init__(self, *, lexer, filename, framework):
+		super().__init__()
+		
+		self.lexer = lexer
+		self.filename = filename
+		self.framework = framework
+
+
 class RezPreprocessor(object):
 	@property
 	def lineno(self):
-		return self.lexers[-1].lineno
+		return self.include_stack[-1].lexer.lineno
 	
 	@lineno.setter
 	def lineno(self, lineno):
-		self.lexers[-1].lineno = lineno
+		self.include_stack[-1].lexer.lineno = lineno
 	
 	@property
 	def lexpos(self):
-		return self.lexers[-1].lexpos
+		return self.include_stack[-1].lexer.lexpos
 	
 	@lexpos.setter
 	def lexpos(self, lexpos):
-		self.lexers[-1].lexpos = lexpos
+		self.include_stack[-1].lexer.lexpos = lexpos
 	
-	def __init__(self, lexer, *, parser=None, evaluator=None, macros=None, derez=False, include_path=None, sys_include_path=None, print_func=None):
+	def __init__(self, lexer, *, filename="<input>", parser=None, evaluator=None, macros=None, derez=False, include_path=None, sys_include_path=None, print_func=None):
 		super().__init__()
 		
-		self.lexers = [lexer]
 		self.parser = parser
 		self.evaluator = evaluator
+		
+		self.include_stack = [IncludeState(lexer=lexer, filename=filename, framework=None)]
 		
 		# Mapping of macro names (case-insensitive, all names must be passed through str.casefold) to lists of expansion tokens.
 		self.macros = {
@@ -122,8 +137,9 @@ class RezPreprocessor(object):
 		return iter(self.token, None)
 	
 	def input(self, *args, **kwargs):
-		self.lexers = [self.lexers[-1].clone()]
-		self.lexers[-1].input(*args, **kwargs)
+		base = self.include_stack[0]
+		self.include_stack[:] = [IncludeState(lexer=base.lexer.clone(), filename=base.filename, framework=None)]
+		self.include_stack[-1].lexer.input(*args, **kwargs)
 	
 	def _eval_expression(self, tokens):
 		return self.evaluator.eval(self.parser.parse_expr(tokens, lexer.NoOpLexer()))
@@ -133,11 +149,11 @@ class RezPreprocessor(object):
 			try:
 				tok = self.expansion_stack.pop(0)
 			except IndexError:
-				tok = self.lexers[-1].token()
+				tok = self.include_stack[-1].lexer.token()
 			
 			if tok is None:
-				if len(self.lexers) > 1:
-					self.lexers.pop()
+				if len(self.include_stack) > 1:
+					self.include_stack.pop()
 				else:
 					return tok
 			elif tok == "expansion_end":
@@ -246,7 +262,7 @@ class RezPreprocessor(object):
 				
 				if not once or (name, angle) not in self.included_files:
 					self.included_files.add((name, angle))
-					self.lexers.append(self.lexer_for_include(name, angle=angle))
+					self.include_stack.append(self.state_for_include(name, angle=angle))
 			elif tok.type == "PP_PRINTF":
 				printf_tokens = []
 				printf_token = self._token_internal()
@@ -369,10 +385,20 @@ class RezPreprocessor(object):
 			else:
 				return tok
 	
-	def lexer_for_include(self, name, *, angle):
+	def state_for_include(self, name, *, angle):
+		# By default, search only the system include path.
 		include_path = self.sys_include_path
+		
+		# For each header in the include stack that comes from a framework, also search the corresponding local sub-frameworks.
+		for state in self.include_stack:
+			if state.framework is not None:
+				include_path.insert(0, os.path.join(state.framework, "Frameworks"))
+		
+		# If the include is quoted and not angled, also search the local include path.
 		if not angle:
-			include_path = self.include_path + include_path
+			include_path[0:0] = self.include_path
+		
+		framework = None
 		
 		for dir in include_path:
 			try:
@@ -389,12 +415,13 @@ class RezPreprocessor(object):
 				try:
 					with open(os.path.join(dir, *parts), "r", encoding=common.STRING_ENCODING) as f:
 						text = f.read()
+					framework = os.path.join(dir, parts[0])
 					break
 				except FileNotFoundError:
 					pass
 		else:
 			raise PreprocessError(f"File {name!r} (angle = {angle}) not found on include path")
 		
-		sublexer = self.lexers[-1].clone()
+		sublexer = self.include_stack[-1].lexer.clone()
 		sublexer.input(text)
-		return sublexer
+		return IncludeState(lexer=sublexer, filename=name, framework=framework)

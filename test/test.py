@@ -57,8 +57,7 @@ def main():
 		parser=parser,
 		evaluator=evaluator,
 		include_path=["."],
-		# TODO Frameworks in frameworks are not properly supported yet
-		sys_include_path=["/System/Library/Frameworks", "/System/Library/Frameworks/CoreServices.framework/Frameworks"],
+		sys_include_path=["/System/Library/Frameworks"],
 		print_func=print,
 	)
 	
