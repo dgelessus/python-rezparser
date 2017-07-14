@@ -98,8 +98,8 @@ class RezParser(object):
 	
 	start = "Start symbol must be set manually"
 	
-	def p_error(self, p):
-		raise ParseError(p)
+	def p_error(self, t):
+		raise ParseError(t, filename=t.lexer.filename, lineno=t.lineno)
 	
 	def p_empty(self, p):
 		"""empty : """
@@ -132,7 +132,11 @@ class RezParser(object):
 		"""
 		
 		if p[1].startswith("'"):
-			value = int.from_bytes(_unescape_string(p[1][1:-1]), "big")
+			try:
+				unescaped = _unescape_string(p[1][1:-1])
+			except ValueError as e:
+				raise ParseError(str(e), filename=p[-1].lexer.filename, lineno=p[-1].lineno)
+			value = int.from_bytes(unescaped, "big")
 		elif p[1].startswith("$"):
 			value = int(p[1][1:], 16)
 		elif p[1].startswith("0X") or p[1].startswith("0x"):
@@ -514,7 +518,11 @@ class RezParser(object):
 			if p[1].startswith("$"):
 				p[0] = ast.StringLiteral(value=bytes.fromhex(p[1][2:-1]))
 			else:
-				p[0] = ast.StringLiteral(value=_unescape_string(p[1][1:-1]))
+				try:
+					unescaped = _unescape_string(p[1][1:-1])
+				except ValueError as e:
+					raise ParseError(str(e), filename=p[-1].lexer.filename, lineno=p[-1].lineno)
+				p[0] = ast.StringLiteral(value=unescaped)
 		else:
 			p[0] = p[1]
 		
@@ -972,13 +980,13 @@ class RezParser(object):
 		for mod in p[1]:
 			mod = mod.lower()
 			if mod in seen:
-				raise ParseError(f"Duplicate attribute {mod!r}")
+				raise ParseError(f"Duplicate attribute {mod!r}", filename=p[-1].lexer.filename, lineno=p[-1].lineno)
 			seen.add(mod)
 			
 			if mod == "wide":
 				wide = True
 			else:
-				raise ParseError(f"Unsupported modifier {mod!r} for type array")
+				raise ParseError(f"Unsupported modifier {mod!r} for type array", filename=p[-1].lexer.filename, lineno=p[-1].lineno)
 		
 		if len(p) > 9:
 			p[0] = ast.ArrayField(wide=wide, label=None, count=p[4], fields=p[7])
@@ -1038,14 +1046,14 @@ class RezParser(object):
 				for mod in modifiers:
 					mod = mod.lower()
 					if mod in seen:
-						raise ParseError(f"Duplicate attribute {mod!r}")
+						raise ParseError(f"Duplicate attribute {mod!r}", filename=p[-1].lexer.filename, lineno=p[-1].lineno)
 					seen.add(mod)
 					
 					if mod == "key":
 						is_key = True
 					elif mod == "unsigned":
 						if typename not in ("bitstring", "byte", "integer", "longint"):
-							raise ParseError(f"Unsupported modifier {mod!r} for type {typename!r}")
+							raise ParseError(f"Unsupported modifier {mod!r} for type {typename!r}", filename=p[-1].lexer.filename, lineno=p[-1].lineno)
 						
 						signed = False
 					elif mod in ("binary", "octal", "decimal", "hex", "literal"):
@@ -1053,14 +1061,14 @@ class RezParser(object):
 							# Special case: hex is allowed on string
 							pass
 						elif typename not in ("bitstring", "byte", "integer", "longint"):
-							raise ParseError(f"Unsupported modifier {mod!r} for type {typename!r}")
+							raise ParseError(f"Unsupported modifier {mod!r} for type {typename!r}", filename=p[-1].lexer.filename, lineno=p[-1].lineno)
 						
 						if base is None:
 							base = mod
 						else:
-							raise ParseError(f"Duplicate base modifier {mod!r} (base was previously set to {base!r}")
+							raise ParseError(f"Duplicate base modifier {mod!r} (base was previously set to {base!r}", filename=p[-1].lexer.filename, lineno=p[-1].lineno)
 					else:
-						raise ParseError(f"Invalid modifier: {mod!r}")
+						raise ParseError(f"Invalid modifier: {mod!r}", filename=p[-1].lexer.filename, lineno=p[-1].lineno)
 				
 				if typename == "int":
 					typename = "integer"
@@ -1087,7 +1095,7 @@ class RezParser(object):
 				elif typename == "rect":
 					fieldtype = ast.RectFieldType()
 				else:
-					raise ParseError(f"Unknown field type {typename!r}")
+					raise ParseError(f"Unknown field type {typename!r}", filename=p[-1].lexer.filename, lineno=p[-1].lineno)
 				
 				if value_or_symconsts is None:
 					value = None

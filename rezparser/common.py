@@ -12,7 +12,22 @@ STRING_ENCODING = "macroman"
 
 
 class RezParserError(Exception):
-	__slots__ = ()
+	__slots__ = ("message", "filename", "lineno")
+	
+	def __init__(self, message, *, filename=None, lineno=None):
+		full_message = str(message)
+		
+		if filename is not None:
+			full_message += f", in file {filename!r}"
+		
+		if lineno is not None:
+			full_message += f", on line {lineno}"
+		
+		super().__init__(full_message)
+		
+		self.message = message
+		self.filename = filename
+		self.lineno = lineno
 
 
 class Token(ply.lex.LexToken):

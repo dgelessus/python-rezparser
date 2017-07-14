@@ -49,7 +49,7 @@ def main():
 	with open(sys.argv[1], "r") as f:
 		text = f.read()
 	
-	lexer = rezparser.lexer.RezLexer(debug=True)
+	lexer = rezparser.lexer.RezLexer(filename=sys.argv[1], debug=True)
 	parser = rezparser.parser.RezParser(debug=True)
 	evaluator = rezparser.eval.Evaluator()
 	preprocessor = rezparser.preprocessor.RezPreprocessor(

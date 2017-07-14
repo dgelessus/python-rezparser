@@ -41,6 +41,20 @@ class NoOpLexer(object):
 		else:
 			self.lexer.lexpos = lexpos
 	
+	@property
+	def filename(self):
+		if self.lexer is None:
+			return self._filename
+		else:
+			return self.lexer.filename
+	
+	@filename.setter
+	def filename(self, filename):
+		if self.lexer is None:
+			self._filename = filename
+		else:
+			self.lexer.filename = filename
+	
 	def __init__(self, lexer=None):
 		super().__init__()
 		
@@ -66,7 +80,12 @@ class NoOpLexer(object):
 				return self.lexer.token()
 	
 	def clone(self):
-		cloned = NoOpLexer(self.lexer.clone())
+		cloned = NoOpLexer(None if self.lexer is None else self.lexer.clone())
+		for attr in ("_lineno", "_lexpos", "_filename"):
+			try:
+				setattr(cloned, attr, getattr(self, attr))
+			except AttributeError:
+				pass
 		cloned.input(self.tokens)
 		return cloned
 
@@ -233,7 +252,12 @@ class RezLexer(object):
 	tokens += tuple("FUN_" + fun[2:].upper() for fun in rez_functions)
 	
 	def t_error(self, t):
-		raise LexError(t)
+		try:
+			newline_pos = t.value.index("\n", 1)
+		except ValueError:
+			newline_pos = len(t.value)
+		
+		raise LexError(repr(t.value[:newline_pos]), filename=self.filename, lineno=self.lineno)
 	
 	_pp = r"(?m:^)[ \t]*\#[ \t]*"
 	_id = r"[A-Za-z_][A-Za-z0-9_]*"
@@ -360,7 +384,7 @@ class RezLexer(object):
 	@ply.lex.TOKEN(r"\$\$"+_id)
 	def t_REZ_FUNCTION(self, t):
 		if t.value.lower() not in RezLexer.rez_functions:
-			raise LexError("Unknown Rez function: " + t.value)
+			raise LexError("Unknown Rez function: " + t.value, filename=self.filename, lineno=self.lineno)
 		
 		t.type = "FUN_" + t.value[2:].upper()
 		
@@ -443,11 +467,23 @@ class RezLexer(object):
 	def lexpos(self, lexpos):
 		self.lexer.lexpos = lexpos
 	
-	def __init__(self, *, _lexer=None, **kwargs):
+	@property
+	def filename(self):
+		try:
+			return self.lexer.filename
+		except AttributeError:
+			return None
+	
+	@filename.setter
+	def filename(self, filename):
+		self.lexer.filename = filename
+	
+	def __init__(self, *, filename="<input>", _lexer=None, **kwargs):
 		super().__init__()
 		
 		if _lexer is None:
 			self.lexer = ply.lex.lex(module=self, lextab="_table_lexer", **kwargs)
+			self.filename = filename
 		else:
 			self.lexer = _lexer
 	
@@ -462,4 +498,6 @@ class RezLexer(object):
 		return self.lexer.token()
 	
 	def clone(self):
-		return RezLexer(_lexer=self.lexer.clone())
+		new_lexer = RezLexer(_lexer=self.lexer.clone())
+		new_lexer.filename = self.filename
+		return new_lexer
