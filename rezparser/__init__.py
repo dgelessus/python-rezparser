@@ -1,3 +1,3 @@
-from . import common
+__version__ = "1.0.0"
 
-__version__ = "0.0.0"
+from . import common
